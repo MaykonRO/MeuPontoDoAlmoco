@@ -265,9 +265,38 @@
   function $(id) { return document.getElementById(id); }
   function pad(n) { return ('0' + n).slice(-2); }
   function hhmm(ms) { var d = new Date(ms); return pad(d.getHours()) + ':' + pad(d.getMinutes()); }
+  /* Notificação fixa (só no app Android; no navegador não faz nada) */
+  var NOTIF_ID = 1;
+  function notifPlugin() {
+    var c = window.Capacitor;
+    return c && c.isNativePlatform && c.isNativePlatform() && c.Plugins ? c.Plugins.LocalNotifications : null;
+  }
+  function syncNotification() {
+    var ln = notifPlugin();
+    if (!ln) return;
+    var done = function () {};
+    if (exitAt == null) {
+      ln.cancel({ notifications: [{ id: NOTIF_ID }] }).catch(done);
+      return;
+    }
+    var back = hhmm(exitAt + HOUR);
+    ln.requestPermissions().then(function (r) {
+      if (r.display !== 'granted') return;
+      return ln.schedule({
+        notifications: [{
+          id: NOTIF_ID,
+          title: 'Volte às ' + back,
+          body: 'Saída registrada às ' + hhmm(exitAt),
+          ongoing: true,
+          autoCancel: false
+        }]
+      });
+    }).catch(done);
+  }
   function save(ms) {
     exitAt = ms;
     try { if (ms == null) localStorage.removeItem(KEY); else localStorage.setItem(KEY, String(ms)); } catch (e) {}
+    syncNotification();
   }
   function load() {
     try {
@@ -369,6 +398,7 @@
   });
 
   load();
+  if (exitAt != null) syncNotification();
   render();
   setInterval(render, 1000);
   document.addEventListener('visibilitychange', render);
