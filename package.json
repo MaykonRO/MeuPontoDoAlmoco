@@ -2,11 +2,12 @@
   "name": "volta-do-almoco",
   "version": "1.0.0",
   "private": true,
-  "description": "Registra a saída para o almoço e mostra a hora de voltar em uma notificação fixa.",
+  "description": "Registra a sa\u00edda para o almo\u00e7o e mostra a hora de voltar em uma notifica\u00e7\u00e3o fixa.",
   "dependencies": {
     "@capacitor/android": "^6.2.0",
     "@capacitor/cli": "^6.2.0",
     "@capacitor/core": "^6.2.0",
+    "@capacitor/device": "^6.0.0",
     "@capacitor/local-notifications": "^6.1.0"
   }
 }

@@ -265,33 +265,94 @@
   function $(id) { return document.getElementById(id); }
   function pad(n) { return ('0' + n).slice(-2); }
   function hhmm(ms) { var d = new Date(ms); return pad(d.getHours()) + ':' + pad(d.getMinutes()); }
-  /* Notificação fixa (só no app Android; no navegador não faz nada) */
+  /* Notificação fixa em 3 níveis. O nível é escolhido uma vez e guardado; só desce se der erro.
+     live   = Live Updates (Android 16 ou superior), plugin nativo LiveUpdate
+     public = fixa e visível na tela de bloqueio (Android 13 ou superior)
+     basic  = fixa na barra de notificações (padrão)
+     No navegador nada disso roda. */
   var NOTIF_ID = 1;
-  function notifPlugin() {
+  var LEVEL_KEY = 'volta-almoco-nivel';
+  var CHANNEL_KEY = 'volta-almoco-canal';
+  var ORDER = ['live', 'public', 'basic'];
+  var level = null;
+  var notifChain = Promise.resolve();
+
+  function nativePlugins() {
     var c = window.Capacitor;
-    return c && c.isNativePlatform && c.isNativePlatform() && c.Plugins ? c.Plugins.LocalNotifications : null;
+    return c && c.isNativePlatform && c.isNativePlatform() && c.Plugins && c.Plugins.LocalNotifications ? c.Plugins : null;
   }
-  function syncNotification() {
-    var ln = notifPlugin();
-    if (!ln) return;
-    var done = function () {};
-    if (exitAt == null) {
-      ln.cancel({ notifications: [{ id: NOTIF_ID }] }).catch(done);
-      return;
+  function readFlag(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function writeFlag(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  function setLevel(l) { level = l; writeFlag(LEVEL_KEY, l); }
+
+  function detectLevel(P) {
+    if (!P.Device) return Promise.resolve('basic');
+    return P.Device.getInfo().then(function (i) {
+      var sdk = i.androidSDKVersion || 0;
+      if (!sdk) { var v = parseInt(i.osVersion, 10) || 0; sdk = v >= 16 ? 36 : v >= 13 ? 33 : 0; }
+      if (sdk >= 36 && P.LiveUpdate) return 'live';
+      return sdk >= 33 ? 'public' : 'basic';
+    }).catch(function () { return 'basic'; });
+  }
+  function currentLevel(P) {
+    if (level) return Promise.resolve(level);
+    var saved = readFlag(LEVEL_KEY);
+    if (ORDER.indexOf(saved) >= 0) { level = saved; return Promise.resolve(level); }
+    return detectLevel(P).then(function (l) { setLevel(l); return l; });
+  }
+  function ensureChannel(ln) {
+    if (readFlag(CHANNEL_KEY)) return Promise.resolve();
+    return ln.createChannel({
+      id: 'volta-publico', name: 'Volta do almoço',
+      description: 'Horário de voltar do almoço',
+      importance: 3, visibility: 1, vibration: false
+    }).then(function () { writeFlag(CHANNEL_KEY, '1'); });
+  }
+  function show(P, lvl, n) {
+    var ln = P.LocalNotifications;
+    if (lvl === 'live') return P.LiveUpdate.show({ id: NOTIF_ID, title: n.title, body: n.body, shortText: n.short });
+    var item = { id: NOTIF_ID, title: n.title, body: n.body, ongoing: true, autoCancel: false };
+    if (lvl === 'public') {
+      return ensureChannel(ln).then(function () {
+        item.channelId = 'volta-publico';
+        return ln.schedule({ notifications: [item] });
+      });
     }
-    var back = hhmm(exitAt + HOUR);
-    ln.requestPermissions().then(function (r) {
-      if (r.display !== 'granted') return;
-      return ln.schedule({
-        notifications: [{
-          id: NOTIF_ID,
+    return ln.schedule({ notifications: [item] });
+  }
+  function attempt(P, lvl, n) {
+    return Promise.resolve().then(function () { return show(P, lvl, n); }).then(function () {
+      if (level !== lvl) setLevel(lvl);
+    }, function () {
+      var next = ORDER[ORDER.indexOf(lvl) + 1];
+      if (!next) return;
+      setLevel(next);
+      return attempt(P, next, n);
+    });
+  }
+  function runSync(P) {
+    return currentLevel(P).then(function (lvl) {
+      if (exitAt == null) {
+        var gone = lvl === 'live'
+          ? P.LiveUpdate.cancel({ id: NOTIF_ID })
+          : P.LocalNotifications.cancel({ notifications: [{ id: NOTIF_ID }] });
+        return gone.catch(function () {});
+      }
+      return P.LocalNotifications.requestPermissions().then(function (r) {
+        if (r.display !== 'granted') return;
+        var back = hhmm(exitAt + HOUR);
+        return attempt(P, lvl, {
           title: 'Volte às ' + back,
           body: 'Saída registrada às ' + hhmm(exitAt),
-          ongoing: true,
-          autoCancel: false
-        }]
+          short: back
+        });
       });
-    }).catch(done);
+    });
+  }
+  function syncNotification() {
+    var P = nativePlugins();
+    if (!P) return;
+    notifChain = notifChain.then(function () { return runSync(P); }).catch(function () {});
   }
   function save(ms) {
     exitAt = ms;
