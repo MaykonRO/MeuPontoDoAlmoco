@@ -111,7 +111,7 @@
   }
   .circle:active { transform: scale(0.97); }
   .circle:focus-visible { outline: 3px solid var(--blue-soft); outline-offset: 4px; }
-  .circle[aria-disabled="true"] { cursor: default; }
+  .circle, .circle[aria-disabled="true"] { cursor: pointer; }
   .circle[aria-disabled="true"]:active { transform: none; }
   .clock {
     font-family: var(--font-time);
