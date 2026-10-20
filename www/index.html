@@ -1,6 +1,9 @@
 <title>Volta do Almoço</title>
-<meta name="claude:viewport-fit-sides" content="cover">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<meta name="claude:viewport-fit-sides" content="cover" />
+<link
+  rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap"
+/>
 <style>
   /* Layout: black screen, one large blue circle at center showing the device clock. A progress ring wraps it once lunch starts; return time and the two actions sit below. Single dark look by design. */
   :root {
@@ -13,22 +16,30 @@
     --fg: #e8f0ff;
     --muted: #8095b8;
     --alert: #7ee8ff;
-    --font-ui: "Instrument Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    --font-time: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --font-ui: "Instrument Sans", system-ui, -apple-system, "Segoe UI", Roboto,
+      sans-serif;
+    --font-time: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas,
+      monospace;
     color-scheme: dark;
   }
 
-  html, body { height: 100%; }
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
   body {
     background: var(--bg);
     color: var(--fg);
     font-family: var(--font-ui);
     font-size: 16px;
     line-height: 1.4;
-    padding-block: 20px;
     padding-left: max(16px, env(safe-area-inset-left, 0px));
     padding-right: max(16px, env(safe-area-inset-right, 0px));
   }
+
   .app {
     max-width: 480px;
     height: 100%;
@@ -38,12 +49,14 @@
     gap: 16px;
     overflow-y: auto;
   }
+
   .top {
     display: flex;
     justify-content: space-between;
     align-items: baseline;
     gap: 12px;
   }
+
   .top h1 {
     margin: 0;
     font-size: 15px;
@@ -52,7 +65,11 @@
     text-transform: uppercase;
     color: var(--blue-soft);
   }
-  .top .rule { color: var(--muted); font-size: 14px; }
+
+  .top .rule {
+    color: var(--muted);
+    font-size: 14px;
+  }
 
   .stage {
     flex: 1;
@@ -72,6 +89,7 @@
     height: var(--size);
     flex: 0 0 auto;
   }
+
   .ring {
     position: absolute;
     inset: 0;
@@ -80,8 +98,16 @@
     transform: rotate(-90deg);
     pointer-events: none;
   }
-  .ring circle { fill: none; stroke-width: 2.6; }
-  .ring .track { stroke: var(--line); }
+
+  .ring circle {
+    fill: none;
+    stroke-width: 2.6;
+  }
+
+  .ring .track {
+    stroke: var(--line);
+  }
+
   .ring .fill {
     stroke: var(--blue-soft);
     stroke-linecap: round;
@@ -89,7 +115,11 @@
     stroke-dashoffset: 295.31;
     transition: stroke-dashoffset 0.6s ease;
   }
-  .dial.late .ring .fill { stroke: var(--alert); }
+
+  .dial.late .ring .fill {
+    stroke: var(--alert);
+  }
+
   .circle {
     position: absolute;
     inset: 7%;
@@ -100,8 +130,14 @@
     cursor: pointer;
     color: var(--fg);
     font-family: var(--font-ui);
-    background: radial-gradient(circle at 35% 28%, #4a92ff 0%, var(--blue) 38%, var(--blue-deep) 100%);
-    box-shadow: 0 0 0 1px rgba(125, 178, 255, 0.35), 0 18px 48px rgba(43, 120, 240, 0.28);
+    background: radial-gradient(
+      circle at 35% 28%,
+      #4a92ff 0%,
+      var(--blue) 38%,
+      var(--blue-deep) 100%
+    );
+    box-shadow: 0 0 0 1px rgba(125, 178, 255, 0.35),
+      0 18px 48px rgba(43, 120, 240, 0.28);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -109,10 +145,24 @@
     gap: 6px;
     padding: 0;
   }
-  .circle:active { transform: scale(0.97); }
-  .circle:focus-visible { outline: 3px solid var(--blue-soft); outline-offset: 4px; }
-  .circle[aria-disabled="true"] { cursor: default; }
-  .circle[aria-disabled="true"]:active { transform: none; }
+
+  .circle:active {
+    transform: scale(0.97);
+  }
+
+  .circle:focus-visible {
+    outline: 3px solid var(--blue-soft);
+    outline-offset: 4px;
+  }
+
+  .circle[aria-disabled="true"] {
+    cursor: default;
+  }
+
+  .circle[aria-disabled="true"]:active {
+    transform: none;
+  }
+
   .clock {
     font-family: var(--font-time);
     font-weight: 700;
@@ -121,12 +171,14 @@
     letter-spacing: -0.04em;
     font-variant-numeric: tabular-nums;
   }
+
   .clock small {
     font-size: 0.42em;
     font-weight: 500;
     letter-spacing: 0;
     opacity: 0.7;
   }
+
   .circle-label {
     font-size: 15px;
     font-weight: 600;
@@ -144,6 +196,7 @@
     text-align: center;
     min-height: 96px;
   }
+
   .kicker {
     font-size: 14px;
     font-weight: 600;
@@ -151,6 +204,7 @@
     text-transform: uppercase;
     color: var(--muted);
   }
+
   .back {
     font-family: var(--font-time);
     font-weight: 700;
@@ -160,14 +214,41 @@
     font-variant-numeric: tabular-nums;
     color: var(--fg);
   }
-  .status { font-size: 18px; font-weight: 500; color: var(--blue-soft); }
-  .info.late .back, .info.late .status { color: var(--alert); }
-  .hint { font-size: 17px; color: var(--muted); max-width: 22ch; }
+
+  .status {
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--blue-soft);
+  }
+
+  .info.late .back,
+  .info.late .status {
+    color: var(--alert);
+  }
+
+  .hint {
+    font-size: 17px;
+    color: var(--muted);
+    max-width: 22ch;
+  }
 
   /* Actions */
-  .actions { display: flex; flex-direction: column; gap: 10px; }
-  .row { display: flex; gap: 10px; }
-  .row > * { flex: 1; min-width: 0; }
+  .actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .row {
+    display: flex;
+    gap: 10px;
+  }
+
+  .row > * {
+    flex: 1;
+    min-width: 0;
+  }
+
   button.act {
     font: inherit;
     cursor: pointer;
@@ -180,10 +261,29 @@
     font-size: 16px;
     font-weight: 600;
   }
-  button.act:focus-visible, input:focus-visible { outline: 3px solid var(--blue-soft); outline-offset: 2px; }
-  button.act.armed { background: var(--blue-deep); border-color: var(--blue-soft); }
-  .editor { display: flex; gap: 10px; align-items: center; }
-  .editor label { font-size: 15px; color: var(--muted); }
+
+  button.act:focus-visible,
+  input:focus-visible {
+    outline: 3px solid var(--blue-soft);
+    outline-offset: 2px;
+  }
+
+  button.act.armed {
+    background: var(--blue-deep);
+    border-color: var(--blue-soft);
+  }
+
+  .editor {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .editor label {
+    font-size: 15px;
+    color: var(--muted);
+  }
+
   .editor input {
     flex: 1;
     min-width: 0;
@@ -196,6 +296,7 @@
     background: var(--surface);
     color: var(--fg);
   }
+
   .editor button {
     flex: 0 0 auto;
     font: inherit;
@@ -208,10 +309,20 @@
     background: var(--blue);
     color: #fff;
   }
-  .editor button:focus-visible { outline: 3px solid var(--blue-soft); outline-offset: 2px; }
+
+  .editor button:focus-visible {
+    outline: 3px solid var(--blue-soft);
+    outline-offset: 2px;
+  }
+
   @media (prefers-reduced-motion: reduce) {
-    .ring .fill { transition: none; }
-    .circle:active { transform: none; }
+    .ring .fill {
+      transition: none;
+    }
+
+    .circle:active {
+      transform: none;
+    }
   }
 </style>
 
@@ -227,14 +338,21 @@
         <circle class="track" cx="50" cy="50" r="47"></circle>
         <circle class="fill" id="ringFill" cx="50" cy="50" r="47"></circle>
       </svg>
-      <button type="button" class="circle" id="circle" aria-label="Registrar saída para o almoço">
+      <button
+        type="button"
+        class="circle"
+        id="circle"
+        aria-label="Registrar saída para o almoço"
+      >
         <span class="clock" id="clock">--:--</span>
         <span class="circle-label" id="circleLabel">Toque ao sair</span>
       </button>
     </div>
 
     <div class="info" id="info" aria-live="polite">
-      <div class="hint" id="hint">Toque no círculo quando sair para o almoço.</div>
+      <div class="hint" id="hint">
+        Toque no círculo quando sair para o almoço.
+      </div>
       <div class="kicker" id="kicker" hidden>Volte às</div>
       <div class="back" id="back" hidden>--:--</div>
       <div class="status" id="status" hidden></div>
@@ -244,7 +362,7 @@
   <div class="actions">
     <div class="editor" id="editor" hidden>
       <label for="timeInput">Saí às</label>
-      <input type="time" id="timeInput">
+      <input type="time" id="timeInput" />
       <button type="button" id="saveTime">Salvar</button>
     </div>
     <div class="row" id="secondary" hidden>
@@ -255,213 +373,321 @@
 </main>
 
 <script>
-(function () {
-  var KEY = 'volta-almoco-saida';
-  var HOUR = 60 * 60 * 1000;
-  var CIRC = 295.31;
-  var exitAt = null;
-  var clearArmed = false, clearTimer = null;
+  (function () {
+    var KEY = "volta-almoco-saida";
+    var HOUR = 60 * 60 * 1000;
+    var CIRC = 295.31;
+    var exitAt = null;
+    var clearArmed = false,
+      clearTimer = null;
 
-  function $(id) { return document.getElementById(id); }
-  function pad(n) { return ('0' + n).slice(-2); }
-  function hhmm(ms) { var d = new Date(ms); return pad(d.getHours()) + ':' + pad(d.getMinutes()); }
-  /* Notificação fixa em 3 níveis. O nível é escolhido uma vez e guardado; só desce se der erro.
-     live   = Live Updates (Android 16 ou superior), plugin nativo LiveUpdate
-     public = fixa e visível na tela de bloqueio (Android 13 ou superior)
-     basic  = fixa na barra de notificações (padrão)
-     No navegador nada disso roda. */
-  var NOTIF_ID = 1;
-  var LEVEL_KEY = 'volta-almoco-nivel';
-  var CHANNEL_KEY = 'volta-almoco-canal';
-  var ORDER = ['live', 'public', 'basic'];
-  var level = null;
-  var notifChain = Promise.resolve();
+    function $(id) {
+      return document.getElementById(id);
+    }
+    function pad(n) {
+      return ("0" + n).slice(-2);
+    }
+    function hhmm(ms) {
+      var d = new Date(ms);
+      return pad(d.getHours()) + ":" + pad(d.getMinutes());
+    }
+    /* Notificação fixa em 3 níveis. O nível é escolhido uma vez e guardado; só desce se der erro.
+           live   = Live Updates (Android 16 ou superior), plugin nativo LiveUpdate
+           public = fixa e visível na tela de bloqueio (Android 13 ou superior)
+           basic  = fixa na barra de notificações (padrão)
+           No navegador nada disso roda. */
+    var NOTIF_ID = 1;
+    var LEVEL_KEY = "volta-almoco-nivel";
+    var CHANNEL_KEY = "volta-almoco-canal";
+    var ORDER = ["live", "public", "basic"];
+    var level = null;
+    var notifChain = Promise.resolve();
 
-  function nativePlugins() {
-    var c = window.Capacitor;
-    return c && c.isNativePlatform && c.isNativePlatform() && c.Plugins && c.Plugins.LocalNotifications ? c.Plugins : null;
-  }
-  function readFlag(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
-  function writeFlag(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
-  function setLevel(l) { level = l; writeFlag(LEVEL_KEY, l); }
+    function nativePlugins() {
+      var c = window.Capacitor;
+      return c &&
+        c.isNativePlatform &&
+        c.isNativePlatform() &&
+        c.Plugins &&
+        c.Plugins.LocalNotifications
+        ? c.Plugins
+        : null;
+    }
+    function readFlag(k) {
+      try {
+        return localStorage.getItem(k);
+      } catch (e) {
+        return null;
+      }
+    }
+    function writeFlag(k, v) {
+      try {
+        localStorage.setItem(k, v);
+      } catch (e) {}
+    }
+    function setLevel(l) {
+      level = l;
+      writeFlag(LEVEL_KEY, l);
+    }
 
-  function detectLevel(P) {
-    if (!P.Device) return Promise.resolve('basic');
-    return P.Device.getInfo().then(function (i) {
-      var sdk = i.androidSDKVersion || 0;
-      if (!sdk) { var v = parseInt(i.osVersion, 10) || 0; sdk = v >= 16 ? 36 : v >= 13 ? 33 : 0; }
-      if (sdk >= 36 && P.LiveUpdate) return 'live';
-      return sdk >= 33 ? 'public' : 'basic';
-    }).catch(function () { return 'basic'; });
-  }
-  function currentLevel(P) {
-    if (level) return Promise.resolve(level);
-    var saved = readFlag(LEVEL_KEY);
-    if (ORDER.indexOf(saved) >= 0) { level = saved; return Promise.resolve(level); }
-    return detectLevel(P).then(function (l) { setLevel(l); return l; });
-  }
-  function ensureChannel(ln) {
-    if (readFlag(CHANNEL_KEY)) return Promise.resolve();
-    return ln.createChannel({
-      id: 'volta-publico', name: 'Volta do almoço',
-      description: 'Horário de voltar do almoço',
-      importance: 3, visibility: 1, vibration: false
-    }).then(function () { writeFlag(CHANNEL_KEY, '1'); });
-  }
-  function show(P, lvl, n) {
-    var ln = P.LocalNotifications;
-    if (lvl === 'live') return P.LiveUpdate.show({ id: NOTIF_ID, title: n.title, body: n.body, shortText: n.short });
-    var item = { id: NOTIF_ID, title: n.title, body: n.body, ongoing: true, autoCancel: false };
-    if (lvl === 'public') {
-      return ensureChannel(ln).then(function () {
-        item.channelId = 'volta-publico';
-        return ln.schedule({ notifications: [item] });
+    function detectLevel(P) {
+      if (!P.Device) return Promise.resolve("basic");
+      return P.Device.getInfo()
+        .then(function (i) {
+          var sdk = i.androidSDKVersion || 0;
+          if (!sdk) {
+            var v = parseInt(i.osVersion, 10) || 0;
+            sdk = v >= 16 ? 36 : v >= 13 ? 33 : 0;
+          }
+          if (sdk >= 36 && P.LiveUpdate) return "live";
+          return sdk >= 33 ? "public" : "basic";
+        })
+        .catch(function () {
+          return "basic";
+        });
+    }
+    function currentLevel(P) {
+      if (level) return Promise.resolve(level);
+      var saved = readFlag(LEVEL_KEY);
+      if (ORDER.indexOf(saved) >= 0) {
+        level = saved;
+        return Promise.resolve(level);
+      }
+      return detectLevel(P).then(function (l) {
+        setLevel(l);
+        return l;
       });
     }
-    return ln.schedule({ notifications: [item] });
-  }
-  function attempt(P, lvl, n) {
-    return Promise.resolve().then(function () { return show(P, lvl, n); }).then(function () {
-      if (level !== lvl) setLevel(lvl);
-    }, function () {
-      var next = ORDER[ORDER.indexOf(lvl) + 1];
-      if (!next) return;
-      setLevel(next);
-      return attempt(P, next, n);
-    });
-  }
-  function runSync(P) {
-    return currentLevel(P).then(function (lvl) {
-      if (exitAt == null) {
-        var gone = lvl === 'live'
-          ? P.LiveUpdate.cancel({ id: NOTIF_ID })
-          : P.LocalNotifications.cancel({ notifications: [{ id: NOTIF_ID }] });
-        return gone.catch(function () {});
+    function ensureChannel(ln) {
+      if (readFlag(CHANNEL_KEY)) return Promise.resolve();
+      return ln
+        .createChannel({
+          id: "volta-publico",
+          name: "Volta do almoço",
+          description: "Horário de voltar do almoço",
+          importance: 3,
+          visibility: 1,
+          vibration: false,
+        })
+        .then(function () {
+          writeFlag(CHANNEL_KEY, "1");
+        });
+    }
+    function show(P, lvl, n) {
+      var ln = P.LocalNotifications;
+      if (lvl === "live")
+        return P.LiveUpdate.show({
+          id: NOTIF_ID,
+          title: n.title,
+          body: n.body,
+          shortText: n.short,
+        });
+      var item = {
+        id: NOTIF_ID,
+        title: n.title,
+        body: n.body,
+        ongoing: true,
+        autoCancel: false,
+      };
+      if (lvl === "public") {
+        return ensureChannel(ln).then(function () {
+          item.channelId = "volta-publico";
+          return ln.schedule({ notifications: [item] });
+        });
       }
-      return P.LocalNotifications.requestPermissions().then(function (r) {
-        if (r.display !== 'granted') return;
-        var back = hhmm(exitAt + HOUR);
-        return attempt(P, lvl, {
-          title: 'Volte às ' + back,
-          body: 'Saída registrada às ' + hhmm(exitAt),
-          short: back
+      return ln.schedule({ notifications: [item] });
+    }
+    function attempt(P, lvl, n) {
+      return Promise.resolve()
+        .then(function () {
+          return show(P, lvl, n);
+        })
+        .then(
+          function () {
+            if (level !== lvl) setLevel(lvl);
+          },
+          function () {
+            var next = ORDER[ORDER.indexOf(lvl) + 1];
+            if (!next) return;
+            setLevel(next);
+            return attempt(P, next, n);
+          }
+        );
+    }
+    function runSync(P) {
+      return currentLevel(P).then(function (lvl) {
+        if (exitAt == null) {
+          var gone =
+            lvl === "live"
+              ? P.LiveUpdate.cancel({ id: NOTIF_ID })
+              : P.LocalNotifications.cancel({
+                  notifications: [{ id: NOTIF_ID }],
+                });
+          return gone.catch(function () {});
+        }
+        return P.LocalNotifications.requestPermissions().then(function (r) {
+          if (r.display !== "granted") return;
+          var back = hhmm(exitAt + HOUR);
+          return attempt(P, lvl, {
+            title: "Volte às " + back,
+            body: "Saída registrada às " + hhmm(exitAt),
+            short: back,
+          });
         });
       });
-    });
-  }
-  function syncNotification() {
-    var P = nativePlugins();
-    if (!P) return;
-    notifChain = notifChain.then(function () { return runSync(P); }).catch(function () {});
-  }
-  function save(ms) {
-    exitAt = ms;
-    try { if (ms == null) localStorage.removeItem(KEY); else localStorage.setItem(KEY, String(ms)); } catch (e) {}
-    syncNotification();
-  }
-  function load() {
-    try {
-      var v = localStorage.getItem(KEY);
-      if (v) {
-        var n = Number(v);
-        if (!isNaN(n) && Date.now() - n < 14 * HOUR && n <= Date.now() + 60000) exitAt = n;
-        else localStorage.removeItem(KEY);
+    }
+    function syncNotification() {
+      var P = nativePlugins();
+      if (!P) return;
+      notifChain = notifChain
+        .then(function () {
+          return runSync(P);
+        })
+        .catch(function () {});
+    }
+    function save(ms) {
+      exitAt = ms;
+      try {
+        if (ms == null) localStorage.removeItem(KEY);
+        else localStorage.setItem(KEY, String(ms));
+      } catch (e) {}
+      syncNotification();
+    }
+    function load() {
+      try {
+        var v = localStorage.getItem(KEY);
+        if (v) {
+          var n = Number(v);
+          if (
+            !isNaN(n) &&
+            Date.now() - n < 14 * HOUR &&
+            n <= Date.now() + 60000
+          )
+            exitAt = n;
+          else localStorage.removeItem(KEY);
+        }
+      } catch (e) {}
+    }
+    function mins(ms) {
+      return Math.max(0, Math.ceil(ms / 60000));
+    }
+    function human(m) {
+      if (m < 60) return m + " min";
+      var h = Math.floor(m / 60),
+        r = m % 60;
+      return r ? h + " h " + r + " min" : h + " h";
+    }
+
+    function render() {
+      var now = new Date();
+      $("clock").innerHTML =
+        pad(now.getHours()) +
+        ":" +
+        pad(now.getMinutes()) +
+        "<small>:" +
+        pad(now.getSeconds()) +
+        "</small>";
+
+      var circle = $("circle"),
+        dial = $("dial"),
+        info = $("info");
+      if (exitAt == null) {
+        circle.removeAttribute("aria-disabled");
+        circle.setAttribute("aria-label", "Registrar saída para o almoço");
+        $("circleLabel").textContent = "Toque ao sair";
+        $("hint").hidden = false;
+        $("kicker").hidden = true;
+        $("back").hidden = true;
+        $("status").hidden = true;
+        $("ringFill").style.strokeDashoffset = CIRC;
+        dial.className = "dial";
+        info.className = "info";
+        $("secondary").hidden = true;
+        return;
       }
-    } catch (e) {}
-  }
-  function mins(ms) { return Math.max(0, Math.ceil(ms / 60000)); }
-  function human(m) {
-    if (m < 60) return m + ' min';
-    var h = Math.floor(m / 60), r = m % 60;
-    return r ? h + ' h ' + r + ' min' : h + ' h';
-  }
 
-  function render() {
-    var now = new Date();
-    $('clock').innerHTML = pad(now.getHours()) + ':' + pad(now.getMinutes()) + '<small>:' + pad(now.getSeconds()) + '</small>';
+      var t = now.getTime(),
+        back = exitAt + HOUR,
+        diff = back - t;
+      circle.setAttribute("aria-disabled", "true");
+      circle.setAttribute("aria-label", "Saída registrada às " + hhmm(exitAt));
+      $("circleLabel").textContent = "Saída " + hhmm(exitAt);
+      $("hint").hidden = true;
+      $("kicker").hidden = false;
+      $("back").hidden = false;
+      $("status").hidden = false;
+      $("back").textContent = hhmm(back);
+      var pct = Math.min(1, Math.max(0, (t - exitAt) / HOUR));
+      $("ringFill").style.strokeDashoffset = CIRC * (1 - pct);
 
-    var circle = $('circle'), dial = $('dial'), info = $('info');
-    if (exitAt == null) {
-      circle.removeAttribute('aria-disabled');
-      circle.setAttribute('aria-label', 'Registrar saída para o almoço');
-      $('circleLabel').textContent = 'Toque ao sair';
-      $('hint').hidden = false;
-      $('kicker').hidden = true; $('back').hidden = true; $('status').hidden = true;
-      $('ringFill').style.strokeDashoffset = CIRC;
-      dial.className = 'dial'; info.className = 'info';
-      $('secondary').hidden = true;
-      return;
+      var late = diff <= 0;
+      dial.className = "dial" + (late ? " late" : "");
+      info.className = "info" + (late ? " late" : "");
+      if (diff > 0) $("status").textContent = "Faltam " + human(mins(diff));
+      else if (diff > -60000) $("status").textContent = "Hora de voltar";
+      else
+        $("status").textContent =
+          "Passou " + human(mins(-diff)) + " do horário";
+      $("secondary").hidden = false;
     }
 
-    var t = now.getTime(), back = exitAt + HOUR, diff = back - t;
-    circle.setAttribute('aria-disabled', 'true');
-    circle.setAttribute('aria-label', 'Saída registrada às ' + hhmm(exitAt));
-    $('circleLabel').textContent = 'Saída ' + hhmm(exitAt);
-    $('hint').hidden = true;
-    $('kicker').hidden = false; $('back').hidden = false; $('status').hidden = false;
-    $('back').textContent = hhmm(back);
-    var pct = Math.min(1, Math.max(0, (t - exitAt) / HOUR));
-    $('ringFill').style.strokeDashoffset = CIRC * (1 - pct);
-
-    var late = diff <= 0;
-    dial.className = 'dial' + (late ? ' late' : '');
-    info.className = 'info' + (late ? ' late' : '');
-    if (diff > 0) $('status').textContent = 'Faltam ' + human(mins(diff));
-    else if (diff > -60000) $('status').textContent = 'Hora de voltar';
-    else $('status').textContent = 'Passou ' + human(mins(-diff)) + ' do horário';
-    $('secondary').hidden = false;
-  }
-
-  function disarm() {
-    clearArmed = false;
-    var b = $('clearBtn');
-    b.textContent = 'Limpar';
-    b.classList.remove('armed');
-    if (clearTimer) { clearTimeout(clearTimer); clearTimer = null; }
-  }
-
-  $('circle').addEventListener('click', function () {
-    if (exitAt != null) return;
-    save(Date.now());
-    render();
-  });
-  $('fixBtn').addEventListener('click', function () {
-    var ed = $('editor');
-    ed.hidden = !ed.hidden;
-    if (!ed.hidden && exitAt != null) {
-      var d = new Date(exitAt);
-      $('timeInput').value = pad(d.getHours()) + ':' + pad(d.getMinutes());
+    function disarm() {
+      clearArmed = false;
+      var b = $("clearBtn");
+      b.textContent = "Limpar";
+      b.classList.remove("armed");
+      if (clearTimer) {
+        clearTimeout(clearTimer);
+        clearTimer = null;
+      }
     }
-  });
-  $('saveTime').addEventListener('click', function () {
-    var v = $('timeInput').value;
-    if (!v) return;
-    var p = v.split(':'), d = new Date();
-    d.setHours(Number(p[0]), Number(p[1]), 0, 0);
-    if (d.getTime() > Date.now() + 60000) d.setDate(d.getDate() - 1);
-    save(d.getTime());
-    $('editor').hidden = true;
-    render();
-  });
-  $('clearBtn').addEventListener('click', function () {
-    var b = $('clearBtn');
-    if (!clearArmed) {
-      clearArmed = true;
-      b.textContent = 'Confirmar limpar';
-      b.classList.add('armed');
-      clearTimer = setTimeout(disarm, 4000);
-      return;
-    }
-    disarm();
-    save(null);
-    $('editor').hidden = true;
-    render();
-  });
 
-  load();
-  if (exitAt != null) syncNotification();
-  render();
-  setInterval(render, 1000);
-  document.addEventListener('visibilitychange', render);
-})();
+    $("circle").addEventListener("click", function () {
+      if (exitAt != null) {
+        save(null);
+        return;
+      }
+      save(Date.now());
+      render();
+    });
+    $("fixBtn").addEventListener("click", function () {
+      var ed = $("editor");
+      ed.hidden = !ed.hidden;
+      if (!ed.hidden && exitAt != null) {
+        var d = new Date(exitAt);
+        $("timeInput").value = pad(d.getHours()) + ":" + pad(d.getMinutes());
+      }
+    });
+    $("saveTime").addEventListener("click", function () {
+      var v = $("timeInput").value;
+      if (!v) return;
+      var p = v.split(":"),
+        d = new Date();
+      d.setHours(Number(p[0]), Number(p[1]), 0, 0);
+      if (d.getTime() > Date.now() + 60000) d.setDate(d.getDate() - 1);
+      save(d.getTime());
+      $("editor").hidden = true;
+      render();
+    });
+    $("clearBtn").addEventListener("click", function () {
+      var b = $("clearBtn");
+      if (!clearArmed) {
+        clearArmed = true;
+        b.textContent = "Confirmar limpar";
+        b.classList.add("armed");
+        clearTimer = setTimeout(disarm, 4000);
+        return;
+      }
+      disarm();
+      save(null);
+      $("editor").hidden = true;
+      render();
+    });
+
+    load();
+    if (exitAt != null) syncNotification();
+    render();
+    setInterval(render, 1000);
+    document.addEventListener("visibilitychange", render);
+  })();
 </script>
