@@ -21,4 +21,4 @@ O APK é de teste (debug), serve para uso pessoal.
 
 Abra `www/index.html`. A notificação fixa só funciona no app Android.
 
-[Link para baixar o apk](https://github.com/MaykonRO/MeuPontoDoAlmoco/actions/runs/39333954341/artifacts/12225587245)
+[Link para baixar o apk](https://github.com/MaykonRO/MeuPontoDoAlmoco/actions/runs/39514914574/artifacts/12308150729)
