@@ -30,6 +30,8 @@ jobs:
           npx cap add android
           npx cap sync android
           bash scripts/prepare-android.sh
+        env:
+          APP_VERSION_CODE: ${{ github.run_number }}
 
       - name: Compilar APK
         working-directory: android
