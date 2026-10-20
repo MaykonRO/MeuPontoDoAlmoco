@@ -10,15 +10,12 @@ Toque ao sair para o almoço e veja a hora de voltar (1 hora depois). No Android
 
 ## Instalar no celular
 
-1. Abra a aba **Actions** do repositório e entre na última execução de **Build APK**.
-2. Baixe o arquivo **volta-do-almoco-apk** em *Artifacts* e descompacte o `.zip`.
-3. No Android, permita instalar apps de fontes desconhecidas e toque no `app-debug.apk`.
-4. Ao abrir pela primeira vez, aceite a permissão de notificações.
+1. **[Baixar o APK mais recente](https://github.com/MaykonRO/MeuPontoDoAlmoco/releases/latest/download/volta-do-almoco.apk)**. O link é atualizado sozinho a cada merge na `main`.
+2. No Android, permita instalar apps de fontes desconhecidas e toque no `volta-do-almoco.apk`.
+3. Ao abrir pela primeira vez, aceite a permissão de notificações.
 
 O APK é de teste (debug), serve para uso pessoal.
 
 ## Rodar no navegador
 
 Abra `www/index.html`. A notificação fixa só funciona no app Android.
-
-[Link para baixar o apk](https://github.com/MaykonRO/MeuPontoDoAlmoco/actions/runs/39514914574/artifacts/12308150729)
