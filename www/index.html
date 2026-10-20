@@ -50,11 +50,58 @@
     overflow-y: auto;
   }
 
+  [hidden] {
+    display: none !important;
+  }
+
   .top {
     display: flex;
     justify-content: space-between;
-    align-items: baseline;
+    align-items: center;
     gap: 12px;
+  }
+
+  .top-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .gear {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border-radius: 12px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--muted);
+    cursor: pointer;
+  }
+
+  .gear:hover {
+    color: var(--fg);
+    border-color: var(--blue-soft);
+  }
+
+  .gear:focus-visible,
+  .chip:focus-visible,
+  .modal-close:focus-visible,
+  .custom input:focus-visible,
+  .custom button:focus-visible {
+    outline: 3px solid var(--blue-soft);
+    outline-offset: 2px;
+  }
+
+  .gear svg {
+    width: 22px;
+    height: 22px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
   }
 
   .top h1 {
@@ -315,6 +362,141 @@
     outline-offset: 2px;
   }
 
+  /* Modal de configuração do tempo de almoço */
+  .modal {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    background: rgba(4, 7, 13, 0.76);
+    padding-left: max(0px, env(safe-area-inset-left, 0px));
+    padding-right: max(0px, env(safe-area-inset-right, 0px));
+  }
+
+  .modal-panel {
+    width: 100%;
+    max-width: 480px;
+    box-sizing: border-box;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-bottom: 0;
+    border-radius: 18px 18px 0 0;
+    padding: 20px 16px calc(20px + env(safe-area-inset-bottom, 0px));
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .modal-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .modal-head h2 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+  }
+
+  .modal-close {
+    font: inherit;
+    font-weight: 600;
+    min-height: 44px;
+    padding: 0 14px;
+    border-radius: 12px;
+    border: 1px solid var(--line);
+    background: transparent;
+    color: var(--fg);
+    cursor: pointer;
+  }
+
+  .modal-label {
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .presets {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+    gap: 10px;
+  }
+
+  .chip {
+    font: inherit;
+    font-size: 16px;
+    font-weight: 600;
+    min-height: 54px;
+    padding: 0 10px;
+    border-radius: 12px;
+    border: 1px solid var(--line);
+    background: var(--bg);
+    color: var(--fg);
+    cursor: pointer;
+  }
+
+  .chip[aria-pressed="true"] {
+    background: var(--blue-deep);
+    border-color: var(--blue-soft);
+  }
+
+  .chip small {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+  }
+
+  .custom {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .custom label {
+    font-size: 15px;
+    color: var(--muted);
+  }
+
+  .custom input {
+    flex: 1;
+    min-width: 0;
+    font-family: var(--font-time);
+    font-size: 20px;
+    min-height: 54px;
+    padding: 0 12px;
+    border-radius: 12px;
+    border: 1px solid var(--line);
+    background: var(--bg);
+    color: var(--fg);
+  }
+
+  .custom button {
+    flex: 0 0 auto;
+    font: inherit;
+    font-weight: 600;
+    min-height: 54px;
+    padding: 0 18px;
+    border-radius: 12px;
+    border: 0;
+    background: var(--blue);
+    color: #fff;
+    cursor: pointer;
+  }
+
+  .modal-error {
+    min-height: 1.4em;
+    margin: -8px 0 0;
+    font-size: 14px;
+    color: var(--alert);
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .ring .fill {
       transition: none;
@@ -329,7 +511,23 @@
 <main class="app">
   <div class="top">
     <h1>Volta do Almoço</h1>
-    <span class="rule">intervalo de 1 hora</span>
+    <div class="top-right">
+      <span class="rule" id="rule">intervalo de 1 hora</span>
+      <button
+        type="button"
+        class="gear"
+        id="gearBtn"
+        aria-label="Configurar tempo de almoço"
+        aria-haspopup="dialog"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path
+            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"
+          ></path>
+        </svg>
+      </button>
+    </div>
   </div>
 
   <section class="stage">
@@ -372,10 +570,48 @@
   </div>
 </main>
 
+<div class="modal" id="modal" hidden>
+  <div
+    class="modal-panel"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="modalTitle"
+  >
+    <div class="modal-head">
+      <h2 id="modalTitle">Tempo de almoço</h2>
+      <button type="button" class="modal-close" id="modalClose">Fechar</button>
+    </div>
+    <div class="modal-label">Escolha o tempo</div>
+    <div class="presets" id="presets"></div>
+    <form class="custom" id="customForm" novalidate>
+      <label for="customMin">Outro (min)</label>
+      <input
+        type="number"
+        id="customMin"
+        inputmode="numeric"
+        min="5"
+        max="480"
+        step="1"
+      />
+      <button type="submit">Aplicar</button>
+    </form>
+    <p class="modal-error" id="modalError" aria-live="polite"></p>
+  </div>
+</div>
+
 <script>
   (function () {
     var KEY = "volta-almoco-saida";
-    var HOUR = 60 * 60 * 1000;
+    var DUR_KEY = "volta-almoco-duracao";
+    var DEFAULT_MIN = 60;
+    var MIN_MIN = 5;
+    var MAX_MIN = 480;
+    var PRESETS = [30, 45, 60, 90, 120];
+    var DAY_LIMIT = 14 * 60 * 60 * 1000;
+    var lunchMin = DEFAULT_MIN;
+    function lunchMs() {
+      return lunchMin * 60000;
+    }
     var CIRC = 295.31;
     var exitAt = null;
     var clearArmed = false,
@@ -527,7 +763,7 @@
         }
         return P.LocalNotifications.requestPermissions().then(function (r) {
           if (r.display !== "granted") return;
-          var back = hhmm(exitAt + HOUR);
+          var back = hhmm(exitAt + lunchMs());
           return attempt(P, lvl, {
             title: "Volte às " + back,
             body: "Saída registrada às " + hhmm(exitAt),
@@ -560,7 +796,7 @@
           var n = Number(v);
           if (
             !isNaN(n) &&
-            Date.now() - n < 14 * HOUR &&
+            Date.now() - n < DAY_LIMIT &&
             n <= Date.now() + 60000
           )
             exitAt = n;
@@ -607,7 +843,7 @@
       }
 
       var t = now.getTime(),
-        back = exitAt + HOUR,
+        back = exitAt + lunchMs(),
         diff = back - t;
       circle.setAttribute("aria-disabled", "true");
       circle.setAttribute("aria-label", "Saída registrada às " + hhmm(exitAt));
@@ -617,7 +853,7 @@
       $("back").hidden = false;
       $("status").hidden = false;
       $("back").textContent = hhmm(back);
-      var pct = Math.min(1, Math.max(0, (t - exitAt) / HOUR));
+      var pct = Math.min(1, Math.max(0, (t - exitAt) / lunchMs()));
       $("ringFill").style.strokeDashoffset = CIRC * (1 - pct);
 
       var late = diff <= 0;
@@ -629,6 +865,76 @@
         $("status").textContent =
           "Passou " + human(mins(-diff)) + " do horário";
       $("secondary").hidden = false;
+    }
+
+    /* Tempo de almoço: padrão 1 h, guardado no aparelho */
+    function fmtDur(m) {
+      if (m === 60) return "1 hora";
+      if (m === 120) return "2 horas";
+      if (m < 60) return m + " min";
+      var h = Math.floor(m / 60),
+        r = m % 60;
+      return r ? h + " h " + pad(r) + " min" : h + " h";
+    }
+    function loadDuration() {
+      try {
+        var n = parseInt(localStorage.getItem(DUR_KEY), 10);
+        if (n >= MIN_MIN && n <= MAX_MIN) lunchMin = n;
+      } catch (e) {}
+    }
+    function buildPresets() {
+      var box = $("presets");
+      PRESETS.forEach(function (m) {
+        var b = document.createElement("button");
+        b.type = "button";
+        b.className = "chip";
+        b.dataset.min = String(m);
+        b.textContent = fmtDur(m);
+        if (m === DEFAULT_MIN) {
+          var tag = document.createElement("small");
+          tag.textContent = "padrão";
+          b.appendChild(tag);
+        }
+        b.addEventListener("click", function () {
+          setDuration(m);
+        });
+        box.appendChild(b);
+      });
+    }
+    function updateDurationUI() {
+      $("rule").textContent = "intervalo de " + fmtDur(lunchMin);
+      var chips = $("presets").children;
+      for (var i = 0; i < chips.length; i++) {
+        chips[i].setAttribute(
+          "aria-pressed",
+          String(Number(chips[i].dataset.min) === lunchMin)
+        );
+      }
+      $("customMin").value = PRESETS.indexOf(lunchMin) >= 0 ? "" : lunchMin;
+    }
+    function setDuration(m) {
+      if (!(m >= MIN_MIN && m <= MAX_MIN)) return false;
+      lunchMin = m;
+      try {
+        localStorage.setItem(DUR_KEY, String(m));
+      } catch (e) {}
+      $("modalError").textContent = "";
+      updateDurationUI();
+      if (exitAt != null) syncNotification();
+      render();
+      return true;
+    }
+    var lastFocus = null;
+    function openModal() {
+      lastFocus = document.activeElement;
+      $("modal").hidden = false;
+      var sel = $("presets").querySelector('[aria-pressed="true"]');
+      (sel || $("modalClose")).focus();
+    }
+    function closeModal() {
+      $("modal").hidden = true;
+      $("modalError").textContent = "";
+      if (lastFocus && lastFocus.focus) lastFocus.focus();
     }
 
     function disarm() {
@@ -684,6 +990,26 @@
       render();
     });
 
+    $("gearBtn").addEventListener("click", openModal);
+    $("modalClose").addEventListener("click", closeModal);
+    $("modal").addEventListener("click", function (e) {
+      if (e.target === $("modal")) closeModal();
+    });
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && !$("modal").hidden) closeModal();
+    });
+    $("customForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+      var n = parseInt($("customMin").value, 10);
+      if (!setDuration(n)) {
+        $("modalError").textContent =
+          "Use de " + MIN_MIN + " a " + MAX_MIN + " minutos.";
+      }
+    });
+
+    loadDuration();
+    buildPresets();
+    updateDurationUI();
     load();
     if (exitAt != null) syncNotification();
     render();
