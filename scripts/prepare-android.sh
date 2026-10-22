@@ -14,6 +14,8 @@ add_permission() {
 }
 add_permission android.permission.POST_NOTIFICATIONS
 add_permission android.permission.POST_PROMOTED_NOTIFICATIONS
+# Alarme com horário exato (Android 12 ou superior).
+add_permission android.permission.USE_EXACT_ALARM
 
 # Versão automática: o código de versão sobe a cada build (número da execução no GitHub),
 # para o Android aceitar o APK novo como atualização.
