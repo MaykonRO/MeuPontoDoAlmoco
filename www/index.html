@@ -378,6 +378,8 @@
   .modal-panel {
     width: 100%;
     max-width: 480px;
+    max-height: 92vh;
+    overflow-y: auto;
     box-sizing: border-box;
     background: var(--surface);
     border: 1px solid var(--line);
@@ -490,6 +492,23 @@
     cursor: pointer;
   }
 
+  .modal-hint {
+    margin: -8px 0 0;
+    font-size: 14px;
+    color: var(--muted);
+  }
+
+  .alarm-info {
+    font-size: 15px;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .alarm-info.on {
+    color: var(--blue-soft);
+    font-weight: 600;
+  }
+
   .modal-error {
     min-height: 1.4em;
     margin: -8px 0 0;
@@ -554,6 +573,7 @@
       <div class="kicker" id="kicker" hidden>Volte às</div>
       <div class="back" id="back" hidden>--:--</div>
       <div class="status" id="status" hidden></div>
+      <div class="alarm-info" id="alarmInfo" hidden></div>
     </div>
   </section>
 
@@ -578,10 +598,10 @@
     aria-labelledby="modalTitle"
   >
     <div class="modal-head">
-      <h2 id="modalTitle">Tempo de almoço</h2>
+      <h2 id="modalTitle">Configurações</h2>
       <button type="button" class="modal-close" id="modalClose">Fechar</button>
     </div>
-    <div class="modal-label">Escolha o tempo</div>
+    <div class="modal-label">Tempo de almoço</div>
     <div class="presets" id="presets"></div>
     <form class="custom" id="customForm" novalidate>
       <label for="customMin">Outro (min)</label>
@@ -595,6 +615,20 @@
       />
       <button type="submit">Aplicar</button>
     </form>
+    <div class="modal-label">Alarme antes do fim</div>
+    <div class="presets" id="alarmPresets"></div>
+    <form class="custom" id="alarmForm" novalidate>
+      <label for="alarmMin">Outro (min)</label>
+      <input
+        type="number"
+        id="alarmMin"
+        inputmode="numeric"
+        min="1"
+        step="1"
+      />
+      <button type="submit">Aplicar</button>
+    </form>
+    <p class="modal-hint" id="alarmHint"></p>
     <p class="modal-error" id="modalError" aria-live="polite"></p>
   </div>
 </div>
@@ -609,6 +643,24 @@
     var PRESETS = [30, 45, 60, 90, 120];
     var DAY_LIMIT = 14 * 60 * 60 * 1000;
     var lunchMin = DEFAULT_MIN;
+    /* Alarme: minutos antes do fim do almoço. null = desativado (padrão). */
+    var ALARM_KEY = "volta-almoco-alarme";
+    var ALARM_PRESETS = [5, 10, 15, 20];
+    var ALARM_ID = 2;
+    var ALARM_CHANNEL_KEY = "volta-almoco-canal-alarme";
+    var alarmMin = null;
+    function alarmActive() {
+      return alarmMin != null && alarmMin < lunchMin;
+    }
+    function alarmAt() {
+      return exitAt + lunchMs() - alarmMin * 60000;
+    }
+    function alarmMessage(m) {
+      return (
+        "Faltam " + m + (m === 1 ? " minuto" : " minutos") +
+        " para acabar o almoço"
+      );
+    }
     function lunchMs() {
       return lunchMin * 60000;
     }
@@ -772,12 +824,58 @@
         });
       });
     }
+    function ensureAlarmChannel(ln) {
+      if (readFlag(ALARM_CHANNEL_KEY)) return Promise.resolve();
+      return ln
+        .createChannel({
+          id: "volta-alarme",
+          name: "Alarme do almoço",
+          description: "Aviso de que o almoço está acabando",
+          importance: 4,
+          visibility: 1,
+          vibration: true,
+        })
+        .then(function () {
+          writeFlag(ALARM_CHANNEL_KEY, "1");
+        });
+    }
+    function runAlarm(P) {
+      var ln = P.LocalNotifications;
+      var cancel = function () {
+        return ln
+          .cancel({ notifications: [{ id: ALARM_ID }] })
+          .catch(function () {});
+      };
+      if (exitAt == null || !alarmActive() || alarmAt() <= Date.now()) {
+        return cancel();
+      }
+      return ln.requestPermissions().then(function (r) {
+        if (r.display !== "granted") return;
+        var item = {
+          id: ALARM_ID,
+          title: "Volta do almoço",
+          body: alarmMessage(alarmMin),
+          schedule: { at: new Date(alarmAt()), allowWhileIdle: true },
+        };
+        return ensureAlarmChannel(ln)
+          .then(function () {
+            item.channelId = "volta-alarme";
+          })
+          .catch(function () {})
+          .then(function () {
+            return ln.schedule({ notifications: [item] });
+          });
+      });
+    }
     function syncNotification() {
       var P = nativePlugins();
       if (!P) return;
       notifChain = notifChain
         .then(function () {
           return runSync(P);
+        })
+        .then(function () {
+          return runAlarm(P);
         })
         .catch(function () {});
     }
@@ -839,6 +937,7 @@
         dial.className = "dial";
         info.className = "info";
         $("secondary").hidden = true;
+        $("alarmInfo").hidden = true;
         return;
       }
 
@@ -865,6 +964,21 @@
         $("status").textContent =
           "Passou " + human(mins(-diff)) + " do horário";
       $("secondary").hidden = false;
+
+      var ai = $("alarmInfo");
+      if (alarmActive() && diff > 0) {
+        var at = back - alarmMin * 60000;
+        ai.hidden = false;
+        if (t >= at) {
+          ai.textContent = "Alarme disparado às " + hhmm(at);
+          ai.className = "alarm-info on";
+        } else {
+          ai.textContent = "Alarme às " + hhmm(at);
+          ai.className = "alarm-info";
+        }
+      } else {
+        ai.hidden = true;
+      }
     }
 
     /* Tempo de almoço: padrão 1 h, guardado no aparelho */
@@ -881,6 +995,64 @@
         var n = parseInt(localStorage.getItem(DUR_KEY), 10);
         if (n >= MIN_MIN && n <= MAX_MIN) lunchMin = n;
       } catch (e) {}
+    }
+    function loadAlarm() {
+      try {
+        var n = parseInt(localStorage.getItem(ALARM_KEY), 10);
+        if (n >= 1) alarmMin = n;
+      } catch (e) {}
+    }
+    function buildAlarmPresets() {
+      var box = $("alarmPresets");
+      var opts = [null].concat(ALARM_PRESETS);
+      opts.forEach(function (m) {
+        var b = document.createElement("button");
+        b.type = "button";
+        b.className = "chip";
+        b.dataset.min = m == null ? "off" : String(m);
+        b.textContent = m == null ? "Desativado" : m + " min";
+        if (m == null) {
+          var tag = document.createElement("small");
+          tag.textContent = "padrão";
+          b.appendChild(tag);
+        }
+        b.addEventListener("click", function () {
+          setAlarm(m);
+        });
+        box.appendChild(b);
+      });
+    }
+    function updateAlarmUI() {
+      var chips = $("alarmPresets").children;
+      for (var i = 0; i < chips.length; i++) {
+        var d = chips[i].dataset.min;
+        var on = alarmMin == null ? d === "off" : Number(d) === alarmMin;
+        chips[i].setAttribute("aria-pressed", String(on));
+      }
+      $("alarmMin").value =
+        alarmMin != null && ALARM_PRESETS.indexOf(alarmMin) < 0 ? alarmMin : "";
+      var hint = $("alarmHint");
+      if (alarmMin == null) {
+        hint.textContent = "Alarme desativado.";
+      } else if (!alarmActive()) {
+        hint.textContent =
+          "O alarme precisa ser menor que o tempo de almoço. Ele não vai tocar.";
+      } else {
+        hint.textContent = "Mensagem: " + alarmMessage(alarmMin) + ".";
+      }
+    }
+    function setAlarm(m) {
+      if (m != null && !(m >= 1 && m <= MAX_MIN)) return false;
+      alarmMin = m;
+      try {
+        if (m == null) localStorage.removeItem(ALARM_KEY);
+        else localStorage.setItem(ALARM_KEY, String(m));
+      } catch (e) {}
+      $("modalError").textContent = "";
+      updateAlarmUI();
+      syncNotification();
+      render();
+      return true;
     }
     function buildPresets() {
       var box = $("presets");
@@ -920,6 +1092,7 @@
       } catch (e) {}
       $("modalError").textContent = "";
       updateDurationUI();
+      updateAlarmUI();
       if (exitAt != null) syncNotification();
       render();
       return true;
@@ -1007,9 +1180,20 @@
       }
     });
 
+    $("alarmForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+      var n = parseInt($("alarmMin").value, 10);
+      if (!setAlarm(n)) {
+        $("modalError").textContent = "Use de 1 a " + MAX_MIN + " minutos.";
+      }
+    });
+
     loadDuration();
+    loadAlarm();
     buildPresets();
+    buildAlarmPresets();
     updateDurationUI();
+    updateAlarmUI();
     load();
     if (exitAt != null) syncNotification();
     render();
