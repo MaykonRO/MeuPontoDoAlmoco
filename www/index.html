@@ -492,6 +492,73 @@
     cursor: pointer;
   }
 
+  .switch-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 54px;
+    padding: 0 14px;
+    border-radius: 12px;
+    border: 1px solid var(--line);
+    background: var(--bg);
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .switch-row input {
+    width: 24px;
+    height: 24px;
+    margin: 0;
+    accent-color: var(--blue);
+    cursor: pointer;
+  }
+
+  .switch-row input:focus-visible {
+    outline: 3px solid var(--blue-soft);
+    outline-offset: 2px;
+  }
+
+  .update-text {
+    margin: 0;
+    font-size: 16px;
+    color: var(--fg);
+  }
+
+  .update-actions {
+    display: flex;
+    gap: 10px;
+  }
+
+  .update-actions button {
+    flex: 1;
+    min-width: 0;
+    font: inherit;
+    font-weight: 600;
+    min-height: 54px;
+    padding: 0 18px;
+    border-radius: 12px;
+    cursor: pointer;
+  }
+
+  .update-actions .go {
+    border: 0;
+    background: var(--blue);
+    color: #fff;
+  }
+
+  .update-actions .later {
+    border: 1px solid var(--line);
+    background: transparent;
+    color: var(--fg);
+  }
+
+  .update-actions button:focus-visible {
+    outline: 3px solid var(--blue-soft);
+    outline-offset: 2px;
+  }
+
   .modal-hint {
     margin: -8px 0 0;
     font-size: 14px;
@@ -629,7 +696,30 @@
       <button type="submit">Aplicar</button>
     </form>
     <p class="modal-hint" id="alarmHint"></p>
+    <div class="modal-label">Fim do almoço</div>
+    <label class="switch-row" for="vibrateEnd">
+      <span>Vibrar quando o almoço acabar</span>
+      <input type="checkbox" id="vibrateEnd" checked />
+    </label>
     <p class="modal-error" id="modalError" aria-live="polite"></p>
+  </div>
+</div>
+
+<div class="modal" id="updateModal" hidden>
+  <div
+    class="modal-panel"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="updateTitle"
+  >
+    <div class="modal-head">
+      <h2 id="updateTitle">Nova versão disponível</h2>
+    </div>
+    <p class="update-text" id="updateText"></p>
+    <div class="update-actions">
+      <button type="button" class="later" id="updateLater">Agora não</button>
+      <button type="button" class="go" id="updateGo">Atualizar</button>
+    </div>
   </div>
 </div>
 
@@ -649,6 +739,17 @@
     var ALARM_ID = 2;
     var ALARM_CHANNEL_KEY = "volta-almoco-canal-alarme";
     var alarmMin = null;
+    /* Vibração no fim do almoço: ativada por padrão, sem texto. */
+    var VIBRATE_KEY = "volta-almoco-vibrar";
+    var END_ID = 3;
+    var END_CHANNEL_KEY = "volta-almoco-canal-fim";
+    var vibrateEnd = true;
+    /* Verificador de atualização: checa a cada 5 aberturas do app. */
+    var OPENS_KEY = "volta-almoco-aberturas";
+    var CHECK_EVERY = 5;
+    var REPO = "MaykonRO/MeuPontoDoAlmoco";
+    var APK_URL =
+      "https://github.com/" + REPO + "/releases/latest/download/volta-do-almoco.apk";
     function alarmActive() {
       return alarmMin != null && alarmMin < lunchMin;
     }
@@ -867,6 +968,47 @@
           });
       });
     }
+    function ensureEndChannel(ln) {
+      if (readFlag(END_CHANNEL_KEY)) return Promise.resolve();
+      return ln
+        .createChannel({
+          id: "volta-fim",
+          name: "Fim do almoço",
+          description: "Vibra quando o almoço acaba",
+          importance: 4,
+          visibility: 1,
+          vibration: true,
+        })
+        .then(function () {
+          writeFlag(END_CHANNEL_KEY, "1");
+        });
+    }
+    function runEnd(P) {
+      var ln = P.LocalNotifications;
+      var cancel = function () {
+        return ln
+          .cancel({ notifications: [{ id: END_ID }] })
+          .catch(function () {});
+      };
+      var endAt = exitAt == null ? 0 : exitAt + lunchMs();
+      if (exitAt == null || !vibrateEnd || endAt <= Date.now()) return cancel();
+      return ln.requestPermissions().then(function (r) {
+        if (r.display !== "granted") return;
+        /* Sem título e sem corpo: só a vibração. */
+        var item = {
+          id: END_ID,
+          schedule: { at: new Date(endAt), allowWhileIdle: true },
+        };
+        return ensureEndChannel(ln)
+          .then(function () {
+            item.channelId = "volta-fim";
+          })
+          .catch(function () {})
+          .then(function () {
+            return ln.schedule({ notifications: [item] });
+          });
+      });
+    }
     function syncNotification() {
       var P = nativePlugins();
       if (!P) return;
@@ -876,6 +1018,9 @@
         })
         .then(function () {
           return runAlarm(P);
+        })
+        .then(function () {
+          return runEnd(P);
         })
         .catch(function () {});
     }
@@ -996,6 +1141,104 @@
         if (n >= MIN_MIN && n <= MAX_MIN) lunchMin = n;
       } catch (e) {}
     }
+    function loadVibrate() {
+      try {
+        vibrateEnd = localStorage.getItem(VIBRATE_KEY) !== "0";
+      } catch (e) {}
+      $("vibrateEnd").checked = vibrateEnd;
+    }
+    function setVibrate(on) {
+      vibrateEnd = on;
+      try {
+        localStorage.setItem(VIBRATE_KEY, on ? "1" : "0");
+      } catch (e) {}
+      syncNotification();
+    }
+
+    /* ----- Verificador de atualização ----- */
+    function parseVer(v) {
+      var m = /(\d+)\.(\d+)\.(\d+)/.exec(String(v || ""));
+      return m ? [Number(m[1]), Number(m[2]), Number(m[3])] : null;
+    }
+    function isNewer(a, b) {
+      for (var i = 0; i < 3; i++) {
+        if (a[i] !== b[i]) return a[i] > b[i];
+      }
+      return false;
+    }
+    function readOpens() {
+      try {
+        return parseInt(localStorage.getItem(OPENS_KEY), 10) || 0;
+      } catch (e) {
+        return 0;
+      }
+    }
+    function writeOpens(n) {
+      try {
+        localStorage.setItem(OPENS_KEY, String(n));
+      } catch (e) {}
+    }
+    function showUpdate(latestTag, installed) {
+      $("updateText").textContent =
+        "A versão " + String(latestTag).replace(/^v/, "") +
+        " está pronta para baixar. Você está na " + installed + ".";
+      $("updateModal").hidden = false;
+      $("updateGo").focus();
+    }
+    function hideUpdate() {
+      $("updateModal").hidden = true;
+    }
+    function openApk() {
+      var P = window.Capacitor && window.Capacitor.Plugins;
+      if (P && P.Browser) {
+        P.Browser.open({ url: APK_URL }).catch(function () {
+          window.location.href = APK_URL;
+        });
+      } else {
+        window.location.href = APK_URL;
+      }
+    }
+    /* Resolve true se a checagem terminou (com ou sem versão nova). */
+    function checkUpdate(P) {
+      return P.App.getInfo()
+        .then(function (info) {
+          var current = parseVer(info.version);
+          return fetch(
+            "https://api.github.com/repos/" + REPO + "/releases/latest",
+            { headers: { Accept: "application/vnd.github+json" } }
+          )
+            .then(function (r) {
+              if (!r.ok) throw new Error("http " + r.status);
+              return r.json();
+            })
+            .then(function (rel) {
+              var latest = parseVer(rel.tag_name);
+              if (current && latest && isNewer(latest, current)) {
+                showUpdate(rel.tag_name, info.version);
+              }
+              return true;
+            });
+        })
+        .catch(function () {
+          return false;
+        });
+    }
+    /* Conta a abertura; na 5ª, checa e zera. Sem rede, tenta de novo na próxima. */
+    function countOpen() {
+      var c = window.Capacitor;
+      if (!(c && c.isNativePlatform && c.isNativePlatform() && c.Plugins && c.Plugins.App))
+        return;
+      var n = readOpens() + 1;
+      if (n < CHECK_EVERY) {
+        writeOpens(n);
+        return;
+      }
+      writeOpens(CHECK_EVERY);
+      checkUpdate(c.Plugins).then(function (done) {
+        if (done) writeOpens(0);
+      });
+    }
+
     function loadAlarm() {
       try {
         var n = parseInt(localStorage.getItem(ALARM_KEY), 10);
@@ -1169,7 +1412,17 @@
       if (e.target === $("modal")) closeModal();
     });
     document.addEventListener("keydown", function (e) {
-      if (e.key === "Escape" && !$("modal").hidden) closeModal();
+      if (e.key !== "Escape") return;
+      if (!$("updateModal").hidden) hideUpdate();
+      else if (!$("modal").hidden) closeModal();
+    });
+    $("vibrateEnd").addEventListener("change", function () {
+      setVibrate($("vibrateEnd").checked);
+    });
+    $("updateLater").addEventListener("click", hideUpdate);
+    $("updateGo").addEventListener("click", function () {
+      hideUpdate();
+      openApk();
     });
     $("customForm").addEventListener("submit", function (e) {
       e.preventDefault();
@@ -1190,11 +1443,13 @@
 
     loadDuration();
     loadAlarm();
+    loadVibrate();
     buildPresets();
     buildAlarmPresets();
     updateDurationUI();
     updateAlarmUI();
     load();
+    countOpen();
     if (exitAt != null) syncNotification();
     render();
     setInterval(render, 1000);
