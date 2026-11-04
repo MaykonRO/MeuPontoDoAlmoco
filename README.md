@@ -16,6 +16,11 @@ Toque ao sair para o almoço e veja a hora de voltar (1 hora depois). No Android
 
 O APK é de teste (debug), serve para uso pessoal.
 
+## Atualização e vibração
+
+- **Verificador de atualização:** o app conta as aberturas e, a cada 5, consulta a última release do GitHub. Se houver versão nova, mostra um pop-up com **Atualizar** (abre o download do APK) e **Agora não**. Se o usuário recusar, o pop-up volta na próxima 5ª abertura. Sem internet, a checagem é tentada de novo na abertura seguinte.
+- **Vibração no fim do almoço:** ligada por padrão, sem texto, separada do alarme opcional. Dá para desligar em **Configurações → Fim do almoço**.
+
 ## Chave de assinatura (fazer uma vez)
 
 Para o Android aceitar a atualização **por cima** do app instalado, todos os APKs precisam ser assinados com a mesma chave. Sem isso, o build usa uma chave temporária e o celular recusa a atualização (é preciso desinstalar antes).
